@@ -50,11 +50,22 @@ int is_keyword(char* c) {
 	return 0;
 }
 
-void set_id(char* word, int index) {
+int set_id(char* word, int index) {
+
+	// for(int i = 0; i < index; i++) {
+	// 	// int f = strcmp(c, keywords;
+
+	// 	if (f == 0) return 1;
+	// }
+
+	qsort(tab, index-1, 1, cmp);
+
 	for(int i = 0; word[i] != '\0'; i++) {
 		tab[index][i] = word[i];
 	}
-	printf("set %s", tab[index]);
+
+	printf("set %s\n", tab[index]);
+	return 0;
 }
 
 int find_idents() {
@@ -101,7 +112,7 @@ int find_idents() {
 				if(current_head > 1 && is_keyword(current) == 0) {
 					set_id(current, head++);
 
-					printf("c: %d, w: %s\n", current_head-1, current);
+					// printf("c: %d, w: %s\n", current_head-1, current);
 				}
 
 				current_head = 0;
