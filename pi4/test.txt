@@ -1,3 +1,14 @@
-aaa aa a
+print"lol"
+print"\""
+print"// " main()
+print" twoja()stara
+"print/ twoja    stara  /*
 
+1
+2
+3
+8
 
+\
+*/
+for(int i; i<0; i++);
