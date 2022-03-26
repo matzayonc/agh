@@ -6,6 +6,7 @@
 #define IN_LINE_COMMENT 1
 #define IN_BLOCK_COMMENT 2
 #define IN_STRING 4
+#define IN_CHAR 5
 #define IN_ID 8
 
 #define MAX_ID_LEN 64
@@ -68,8 +69,8 @@ int set_id(char* word, int index) {
 	for(int i = 1; word[i-1] != '\0'; i++) 
 		tab[index][i] = word[i];
 
-	printf("set %s\n", tab[index]);
-	print_tab(index+1);
+	// printf("set %s\n", tab[index]);
+	// print_tab(index+1);
 	return 0;
 }
 
@@ -85,14 +86,12 @@ int find_idents() {
 
 
 	while(1) {
-		fgets (line, MAX_LINE, stdin);
-		if(line[0] == '\n') break;
+		if(fgets (line, MAX_LINE, stdin) == NULL)
+			return head;
 
 		int i = 0;
-		int inside_block_comment = 0;
 
-
-		while(line[i] != '\n') {
+		while(line[i] != '\n') { 
 
 			if(status == IN_BLOCK_COMMENT) {
 				if(line[i] == '*' && line[i+1] == '/') 
@@ -104,7 +103,13 @@ int find_idents() {
 					status = 0;
 				i++;
 				continue;
+			} else if(status == IN_CHAR) {
+				if(line[i] == '\'')
+					status = 0;
+				i++;
+				continue;
 			}
+
 
 			int valid = is_valid(line[i]);
 			
@@ -134,16 +139,23 @@ int find_idents() {
 				else if(line[i] == '"') {
 					status = IN_STRING;
 				}
+				else if(line[i] == '\'') {
+					status = IN_CHAR;
+				}
+
 
 			}
 
 			i++;
 		}
-
+ 
 
 		// sscanf (line, "%d", &n);
-		printf("o: %s", line);
+		// printf("o: %s", line);
 	}
+
+
+
 	return head;
 
 }
