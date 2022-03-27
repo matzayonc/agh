@@ -11,4 +11,4 @@ print" twoja()stara
 
 \
 */
-for(int i; i<0; i++);
+for(int i; i < 0; i++);
