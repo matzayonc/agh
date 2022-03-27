@@ -69,7 +69,7 @@ int set_id(char* word, int index) {
 	for(int i = 1; word[i-1] != '\0'; i++) 
 		tab[index][i] = word[i];
 
-	// printf("set %s\n", tab[index]);
+	printf("set %s\n", tab[index]);
 	// print_tab(index+1);
 	return 0;
 }
