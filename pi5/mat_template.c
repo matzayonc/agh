@@ -54,13 +54,37 @@ void mat_vec_product(double A[][SIZE], const double b[], double Ab[], int m, int
 
 void backward_substit(double A[][SIZE], double x[], int n);
 
-void backward_substitution_index(double A[][SIZE], const int indices[], double x[], int n);
+void backward_substitution_index(double A[][SIZE], const int indices[], double x[], int n) {
+	for(int i = n - 1; i >= 0; --i) {
+		x[i] = A[i][n];
+		for(int j = n - 1; j > i; --j) {
+			x[i] -= A[i][j] * x[j];
+		}
+		x[i] /= A[i][i];
+	}
+}
 
 // 5.2
 // Matrix triangulation and determinant calculation - simplified version
 // (no rows' swaps). If A[i][i] == 0, function returns NAN.
 // Function may change A matrix elements.
-double gauss_simplified(double A[][SIZE], int n);
+double gauss_simplified(double A[][SIZE], int n) {
+	double det = 1;
+	for(int i = 0; i < n; i++) {
+		if(A[i][i] == 0) {
+			return NAN;
+		}
+		det *= A[i][i];
+		for(int j = i + 1; j < n; j++) {
+			A[j][i] /= A[i][i];
+			for(int k = i + 1; k < n; k++) {
+				A[j][k] -= A[j][i] * A[i][k];
+			}
+		}
+	}
+	return det;
+
+}
 
 // 5.3
 // Matrix triangulation, determinant calculation, and Ax = b solving - extended version
@@ -94,11 +118,11 @@ int main(void) {
 			mat_product(A, B, C, m, p, n);
 			print_mat(C, m, n);
 			break;
-		// case 2:
-		// 	scanf("%d", &n);
-		// 	read_mat(A, n, n);
-		// 	printf("%.4f\n", gauss_simplified(A, n));
-		// 	break;
+		case 2:
+			scanf("%d", &n);
+			read_mat(A, n, n);
+			printf("%.4f\n", gauss_simplified(A, n));
+			break;
 		// case 3:
 		// 	scanf("%d", &n);
 		// 	read_mat(A,n, n);
