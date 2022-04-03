@@ -69,13 +69,11 @@ void mat_product(double A[][SIZE], double B[][SIZE], double AB[][SIZE], int m,
 }
 
 // Calculate matrix - vector product
-void mat_vec_product(double A[][SIZE], const double b[], double Ab[], int m,
-					 int n);
+void mat_vec_product(double A[][SIZE], const double b[], double Ab[], int m, int n);
 
 void backward_substit(double A[][SIZE], double x[], int n);
 
-void backward_substitution_index(double A[][SIZE], const int indices[],
-								 double x[], int n);
+void backward_substitution_index(double A[][SIZE], const int indices[], double x[], int n);
 
 // 5.2
 // Matrix triangulation and determinant calculation - simplified version
@@ -119,96 +117,77 @@ double gauss_simplified(double A[][SIZE], int n)
 // entire rows.) If max A[i][i] < eps, function returns 0. If det != 0 && b !=
 // NULL && x != NULL then vector x should contain solution of Ax = b.
 
-int swapRows(double A[][SIZE], int swap[], const int n)
+int swap_indices(double A[][SIZE], int swap[], const int n)
 {
 	for (int i = 0; i < n; i++)
-	{
-		int ri = swap[i];
-		if (A[ri][ri] == 0)
-		{
-			for (int j = i + 1; j < n; j++)
-			{
+		if (A[swap[i]][swap[i]] == 0)
+			for (int j = i + 1; j < n; j++) {
 				int rj = swap[j];
 				if (A[rj][i] != 0)
 				{
+					swap[j] = swap[i];
 					swap[i] = rj;
-					swap[j] = ri;
-					return -1;
+					return 1;
 				}
 			}
-		}
-	}
-	return 1;
+	return 0;
 }
 
 double gauss(double A[][SIZE], const double b[], double x[], const int n,
 			 const double eps)
 {
-	double db[n];
-	int swap[n];
-	int det_sign = 1;
+	double values[SIZE];
+	int indices[SIZE];
+	int crosses = 0;
 
-	for (int i = 0; i < n; i++)
-	{
-		db[i] = b[i];
-		swap[i] = i;
+	for (int i = 0; i < n; i++) {
+		values[i] = b[i];
+		indices[i] = i;
 	}
 
 	for (int i = 0; i < n - 1; i++)
-	{
-		for (int r = i + 1; r < n; r++)
+		for (int j = i + 1; j < n; j++)
 		{
-			if (A[swap[i]][i] == 0)
-			{
-				det_sign *= swapRows(A, swap, n);
-				double max = 0;
+			if (A[indices[i]][i] == 0) {
+				double m = 0;
+				crosses += swap_indices(A, indices, n);
 				for (int i = 0; i < n; i++)
-					if (A[i][i] > max)
-						max = A[i][i];
-				if (max < eps)
+					if (A[i][i] > m)
+						m = A[i][i];
+				if (m < eps)
 					return 0;
 			}
 
-			double m = -A[swap[r]][i] / A[swap[i]][i];
+			double m = -A[indices[j]][i] / A[indices[i]][i];
 
 			for (int c = i; c < n; c++)
-				A[swap[r]][c] += m * A[swap[i]][c];
+				A[indices[j]][c] += m * A[indices[i]][c];
 
-			db[swap[r]] += m * db[swap[i]];
+			values[indices[j]] += m * values[indices[i]];
 		}
-	}
 
-	// here come the swaps
-	det_sign *= swapRows(A, swap, n);
+	crosses += swap_indices(A, indices, n);
 
-	// check the diagonal
-	double max = 0;
+	double m = 0;
 	for (int i = 0; i < n; i++)
-		if (A[swap[i]][i] > max)
-			max = A[swap[i]][i];
+		if (A[indices[i]][i] > m)
+			m = A[indices[i]][i];
+	if (m < eps) return 0;
 
-	if (max < eps)
-		return 0;
-
-	// determinant
 	double det = A[0][0];
 	for (int i = 1; i < n; i++)
-		det *= A[swap[i]][i];
+		det *= A[indices[i]][i];
 
-	// determinant sign [change]
-	det *= det_sign;
+	det *= crosses % 2 ? -1 : 1;
 
-	if (det == 0)
-		return det;
+	if (det == 0) return det;
 
-	// calculating x-es
 	double s;
-	for (int i = n - 1; i >= 0; i--)
-	{
-		s = db[swap[i]];
+	for (int i = n - 1; i >= 0; i--) {
+		s = values[indices[i]];
 		for (int j = n - 1; j > i; j--)
-			s = s - A[swap[i]][j] * x[j];
-		x[i] = s / A[swap[i]][i];
+			s = s - A[indices[i]][j] * x[j];
+		x[i] = s / A[indices[i]][i];
 	}
 
 	return det;
@@ -219,63 +198,60 @@ double gauss(double A[][SIZE], const double b[], double x[], const int n,
 // If max A[i][i] < eps, function returns 0.
 double matrix_inv(double A[][SIZE], double B[][SIZE], int n, double eps)
 {
-	int swap[n];
+	int indices[SIZE];
 
 	for (int i = 0; i < n; i++)
-		swap[i] = i;
+		indices[i] = i;
 
-	int sign = 1;
+	int crosses = 0; // every cross of rows is a change of sign
 
-	// B matrix
 	for (int i = 0; i < n; i++)
 		for (int j = 0; j < n; j++)
 			B[i][j] = i == j ? 1 : 0;
 
-	// gauss
 	for (int i = 0; i < n - 1; i++)
 		for (int r = i + 1; r < n; r++)
 		{
-			if (A[swap[i]][i] == 0)
+			if (A[indices[i]][i] == 0)
 			{
-				sign *= swapRows(A, swap, n);
+				crosses += swap_indices(A, indices, n);
 
-				double max = 0;
+				double m = A[0][0];
 				for (int i = 0; i < n; i++)
-					if (A[i][i] > max)
-						max = A[i][i];
-				if (max < eps)
+					if (A[i][i] > m)
+						m = A[i][i];
+				if (m < eps)
 					return 0;
 			}
 
-			double m = -A[swap[r]][i] / A[swap[i]][i];
+			double m = -A[indices[r]][i] / A[indices[i]][i];
 
 			for (int c = i; c < n; c++)
-				A[swap[r]][c] += m * A[swap[i]][c];
+				A[indices[r]][c] += m * A[indices[i]][c];
 
 			for (int c = 0; c < n; c++)
-				B[swap[r]][c] += m * B[swap[i]][c];
+				B[indices[r]][c] += m * B[indices[i]][c];
 		}
 
-	double det = 1;
+	double det = crosses % 2 ? -1 : 1;
 	for (int i = 0; i < n; i++)
-		det *= A[swap[i]][i];
-	det *= sign;
-	if (det == 0)
-		return 0;
+		det *= A[indices[i]][i];
+
+	if (det == 0) return 0;
 
 	for (int i = n - 1; i >= 0; i--) {
-		double m = 1 / A[swap[i]][i];
-		A[swap[i]][i] = 1;
+		double m = 1 / A[indices[i]][i];
+		A[indices[i]][i] = 1;
 
 		for (int c = 0; c < n; c++)
-			B[swap[i]][c] *= m;
+			B[indices[i]][c] *= m;
 
 		for (int r = i - 1; r >= 0; r--) {
-			m = -A[swap[r]][i];
+			m = -A[indices[r]][i];
 			for (int c = 0; c < n; c++)
 			{
-				A[swap[r]][c] += A[swap[i]][c] * m;
-				B[swap[r]][c] += B[swap[i]][c] * m;
+				A[indices[r]][c] += A[indices[i]][c] * m;
+				B[indices[r]][c] += B[indices[i]][c] * m;
 			}
 		}
 	}
