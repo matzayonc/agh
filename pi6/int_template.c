@@ -47,39 +47,92 @@ double int_trapezoid(double x1, double x2, int n, f_1d f) {
 
 // 6.2
 double integral_2d(double x1, double x2, int nx, double y1, double y2, int ny,
-		f_2d f, boundary_2d boundary);
+		f_2d f, boundary_2d boundary) {
+
+	double dx = (x2 - x1) / (double)(nx);
+	double dy = (y2 - y1) / (double)(ny);
+	double s = 0;
+
+	for(int i = 0; i < nx; i++)
+		for(int j = 0; j < ny; j++) {
+			double x = x1 + i * dx;
+			double y = y1 + j * dy;
+			if (boundary(x, y)) {
+				s += f(x, y);
+			}
+		}
+	return s * dx * dy;
+};
 
 //6.3
 double integral_3d(double x1, double x2, int nx, double y1, double y2, int ny,
-		double z1, double z2, int nz, f_3d f);
+		double z1, double z2, int nz, f_3d f) {
+
+	double dx = (x2 - x1) / (double)(nx);
+	double dy = (y2 - y1) / (double)(ny);
+	double dz = (z2 - z1) / (double)(nz);
+	double s = 0;
+
+	for(int i = 0; i < nx; i++)
+		for(int j = 0; j < ny; j++)
+			for(int k = 0; k < nz; k++) {
+				double x = x1 + i * dx;
+				double y = y1 + j * dy;
+				double z = z1 + k * dz;
+				s += f(x, y, z);
+			}
+	return s * dx * dy * dz;
+
+}
 
 double f_1d_1(double x) {
 	return x;
 }
 
-double f_1d_2(double x);
+double f_1d_2(double x) {
+	return x*x/2.0;
+}
 
-double f_1d_3(double x);
+double f_1d_3(double x){
+	return 1.0/(x+1.0);
+}
 
-double f_1d_4(double x);
+double f_1d_4(double x){
+	return log10(x+1);
+}
 
-double f_2d_1(double x, double y);
+double f_2d_1(double x, double y) {
+	return x * y * y;
+}
 
-double f_2d_2(double x, double y);
+double f_2d_2(double x, double y) {
+	return x*x + y*y;
+}
 
-double f_2d_3(double x, double y);
+double f_2d_3(double x, double y) {
+	return 1 / ((1 - x*x - y*y) * (1 - x*x - y*y));
+}
 
 int f_2d_1_boundary(double x, double y) {
 	return x*x + y*y <= 4 && x >= 0;
 }
 
-int f_2d_2_boundary(double x, double y);
+int f_2d_2_boundary(double x, double y) {
+	return x*x + x*y -2*y <= 0 || x*x + x*y -2*y >= 1;
+}
 
-int f_2d_3_boundary(double x, double y);
+int f_2d_3_boundary(double x, double y) {
+	double s = x*x + y*y;
+	return s <= x && s <= y;
+}
 
-double f_3d_1(double x, double y, double z);
+double f_3d_1(double x, double y, double z) {
+	return x + 3*y + 5*z;
+}
 
-double f_3d_2(double x, double y, double z);	
+double f_3d_2(double x, double y, double z) {
+	return 8*sin(x) + pow(5*cos(y), 2.0) + 2*z;
+}
 
 int main(void) {
 	int to_do;
@@ -92,7 +145,7 @@ int main(void) {
 			scanf("%lf %lf %d", &x1, &x2, &n);
 			int_1d int_f[] = {int_left_rectangle, int_right_rectangle,
 				int_mid_rectangle, int_trapezoid };
-			f_1d p_function_1d[] = {f_1d_1/*, f_1d_2, f_1d_3, f_1d_4 */};
+			f_1d p_function_1d[] = {f_1d_1, f_1d_2, f_1d_3, f_1d_4};
 
 			for(int i = 0; i < sizeof(p_function_1d) / sizeof(f_1d); i++) {
 				for(int j = 0; j < sizeof(int_f) / sizeof(int_1d) ; j++) {
@@ -101,30 +154,30 @@ int main(void) {
 				printf("\n");
 			}
 			break;
-		// case 2: // 6.2
-		// 	scanf("%lf %lf %d", &x1, &x2, &nx);
-		// 	scanf("%lf %lf %d", &y1, &y2, &ny);
-		// 	f_2d p_function_2d[] = {f_2d_1, f_2d_2, f_2d_3 };
-		// 	boundary_2d p_boundaries[] = {f_2d_1_boundary, f_2d_2_boundary,
-		// 		f_2d_3_boundary };
-		// 	for(int i = 0; i < sizeof(p_function_2d) / sizeof(f_2d); ++i) {
-		// 		printf("%.2f ",
-		// 				integral_2d(x1, x2, nx, y1, y2, ny,
-		// 					p_function_2d[i], p_boundaries[i]));
-		// 	}
-		// 	printf("\n");
-		// 	break;
-		// case 3: // 6.3
-		// 	scanf("%lf %lf %d", &x1, &x2, &nx);
-		// 	scanf("%lf %lf %d", &y1, &y2, &ny);
-		// 	scanf("%lf %lf %d", &z1, &z2, &nz);
-		// 	f_3d function_3d[] = {f_3d_1, f_3d_2};
-		// 	for(int i = 0; i < sizeof(function_3d) / sizeof(f_3d); ++i) {
-		// 		printf("%.2f ",
-		// 				integral_3d(x1, x2, nx, y1, y2, ny, z1, z2, nz, function_3d[i]));
-		// 	}
-		// 	printf("\n");
-		// 	break;
+		case 2: // 6.2
+			scanf("%lf %lf %d", &x1, &x2, &nx);
+			scanf("%lf %lf %d", &y1, &y2, &ny);
+			f_2d p_function_2d[] = {f_2d_1, f_2d_2, f_2d_3 };
+			boundary_2d p_boundaries[] = {f_2d_1_boundary, f_2d_2_boundary,
+				f_2d_3_boundary };
+			for(int i = 0; i < sizeof(p_function_2d) / sizeof(f_2d); ++i) {
+				printf("%.2f ",
+						integral_2d(x1, x2, nx, y1, y2, ny,
+							p_function_2d[i], p_boundaries[i]));
+			}
+			printf("\n");
+			break;
+		case 3: // 6.3
+			scanf("%lf %lf %d", &x1, &x2, &nx);
+			scanf("%lf %lf %d", &y1, &y2, &ny);
+			scanf("%lf %lf %d", &z1, &z2, &nz);
+			f_3d function_3d[] = {f_3d_1, f_3d_2};
+			for(int i = 0; i < sizeof(function_3d) / sizeof(f_3d); ++i) {
+				printf("%.2f ",
+						integral_3d(x1, x2, nx, y1, y2, ny, z1, z2, nz, function_3d[i]));
+			}
+			printf("\n");
+			break;
 		default:
 			printf("NOTHING TO DO FOR %d\n", to_do);
 			break;
