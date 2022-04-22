@@ -27,17 +27,18 @@ def cache(func, M={}):
 
 @cache
 def select(T, p, i):
-    m = []
+    m = (0, [])
 
     for k in range(i+1, len(T)):
         if collides(T, i, k) or p - T[i][3] < T[k][3]:
             continue
         c = select(T, p - T[i][3], k)
+        c = (value(T, c), c)
 
-        if value(T, c) > value(T, m):
+        if c[0] > m[0]:
             m = c
 
-    return [i, *m]
+    return [i, *m[1]]
 
 
 def select_buildings(T, p):
@@ -47,21 +48,19 @@ def select_buildings(T, p):
 
     T.sort(key=lambda x: x[1])
 
-    m = []
+    m = (0, [])
     for k in range(0, len(T)):
         if p < T[k][3]:
             continue
 
         c = select(T, p, k)
+        c = (value(T, c), c)
 
-        if value(T, c) > value(T, m):
+        if c[0] > m[0]:
             m = c
 
-    for i in range(len(m)):
-        m[i] = T[m[i]][4]
-
+    m = [T[m[1][i]][4] for i in range(len(m[1]))]
     m.sort()
-
     return m
 
 
