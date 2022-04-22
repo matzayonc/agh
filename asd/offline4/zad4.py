@@ -10,18 +10,27 @@ def value(T, S):
 
 
 def collides(T, i, j):
-    return T[i][2] > T[j][1] and T[i][1] < T[j][2]
+    return T[i][2] >= T[j][1] and T[i][1] <= T[j][2]
 
 
+def cache(func, M={}):
+    def wrapper(*args):
+
+        k = str(args[1]) + '-' + str(args[2]) + '-' + str(args[0])
+
+        if k not in M:
+            M[k] = func(*args)
+        return M[k]
+
+    return wrapper
+
+
+@cache
 def select(T, p, i):
-
     m = []
 
-    if i >= len(T) or p < 0:
-        return m
-
     for k in range(i+1, len(T)):
-        if collides(T, i, k):
+        if collides(T, i, k) or p - T[i][3] < T[k][3]:
             continue
         c = select(T, p - T[i][3], k)
 
@@ -40,6 +49,9 @@ def select_buildings(T, p):
 
     m = []
     for k in range(0, len(T)):
+        if p < T[k][3]:
+            continue
+
         c = select(T, p, k)
 
         if value(T, c) > value(T, m):
@@ -52,19 +64,5 @@ def select_buildings(T, p):
 
     return m
 
-    # tu prosze wpisac wlasna implementacje
-    # return select(T, p, 0)
-
 
 runtests(select_buildings)
-
-
-T = [
-    (1, 1, 2, 1),
-    (1, 1, 3, 1),
-    (1, 2, 3, 1),
-    (1, 3, 4, 1)
-]
-print(select_buildings([(3, 7, 9, 2), (2, 1, 5, 3),
-
-                        (2, 8, 11, 1)], 5))
