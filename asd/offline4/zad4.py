@@ -10,11 +10,10 @@ def collides(T, i, j):
 def cache(func):
     def wrapper(*args):
 
-        k = str(args[1]) + '-' + str(args[2])
+        if M[args[2]][args[1]] is None:
+            M[args[2]][args[1]] = func(*args)
 
-        if k not in M:
-            M[k] = func(*args)
-        return M[k]
+        return M[args[2]][args[1]]
 
     return wrapper
 
@@ -36,9 +35,10 @@ def select(T, p, i):
 
 def select_buildings(T, p):
     global M
-    M = {}
+    M = [[None for _ in range(p+1)] for _ in range(len(T))]
+
     for i in range(len(T)):
-        T[i] = ((T[i][2] - T[i][1]) * T[i][0], *T[i][1:4], i)
+        T[i] = ((T[i][2] - T[i][1]) * T[i][0], *T[i][1: 4], i)
 
     T.sort(key=lambda x: x[1])
 
