@@ -15,22 +15,83 @@ int add_relation (pair*, int, pair);
 
 // Case 1:
 // The relation R is reflexive if xRx for every x in X
-int is_reflexive(pair*, int);
+int is_reflexive(pair* pairs, int n) {
+	int unique[MAX_RANGE] = {0};
+	int unique_reflexive[MAX_RANGE];
+	for(int i = 0; i < n; i++){
+		unique[pairs[i].first] = 1;
+		unique[pairs[i].second] = 1;
+		if(pairs[i].first == pairs[i].second)
+			unique_reflexive[pairs[i].first] = 1;
+	}
+
+	for(int i = 0; i < MAX_RANGE; i++)
+		if(unique[i] == 1 && unique_reflexive[i] == 0)
+			return 0;
+
+	return 1;
+}
 // The relation R on the set X is called irreflexive
 // if xRx is false for every x in X
-int is_irreflexive(pair*, int);
+int is_irreflexive(pair* pairs, int n) {
+	for(int i = 0; i < n; i++)
+		if(pairs[i].first == pairs[i].second)
+			return 0;
+
+	return 1;
+}
 // A binary relation R over a set X is symmetric if:
 // for all x, y in X xRy <=> yRx
-int is_symmetric(pair*, int);
+int is_symmetric(pair* pairs, int n) {
+	for(int i = 0; i < n; i++) {
+		int ok = 0;
+		for (int j = 0; j < n; j++)
+			if(pairs[i].first == pairs[j].second && pairs[i].second == pairs[j].first) {
+				ok = 1;
+				break;
+			}
+		if(!ok)
+			return 0;
+	}
+	return 1;
+}
 // A binary relation R over a set X is antisymmetric if:
 // for all x,y in X if xRy and yRx then x=y
-int is_antisymmetric(pair*, int);
+int is_antisymmetric(pair* pairs, int n) {
+	for(int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++)
+			if(pairs[i].first == pairs[j].second && pairs[i].second == pairs[j].first) 
+				if(pairs[i].first != pairs[i].second)
+					return 0;
+		
+	}
+	return 1;
+}
 // A binary relation R over a set X is asymmetric if:
 // for all x,y in X if at least one of xRy and yRx is false
-int is_asymmetric(pair*, int);
+int is_asymmetric(pair* pairs, int n) {
+	return !is_symmetric(pairs, n);
+}
 // A homogeneous relation R on the set X is a transitive relation if:
 // for all x, y, z in X, if xRy and yRz, then xRz
-int is_transitive(pair*, int);
+int is_transitive(pair* pairs, int n) {
+	for(int i = 0; i < n; i++) 
+		for(int j = 0; j < n; j++) {
+			if(pairs[i].second != pairs[j].first)
+				continue;
+
+			int ok = 0;
+			for(int k = 0; k < n; k++)
+				if(pairs[i].first == pairs[k].first && pairs[j].second == pairs[k].second){
+					ok = 1;
+					break;
+				}
+
+			if(!ok)
+				return 0;
+		}
+	return 1;
+}
 
 // Case 2:
 // A partial order relation is a homogeneous relation that is
@@ -54,7 +115,15 @@ int cmp (pair p1, pair p2) {
 }
 
 // Read number of pairs, n, and then n pairs of ints
-int read_relation(pair*);
+int read_relation(pair* tab) {
+	int n;
+	scanf("%d",&n);
+	for(int i = 0; i < n; i++) {
+		scanf("%d",&tab[i].first);
+		scanf("%d",&tab[i].second);
+	}
+	return n;
+}
 
 void print_int_array(int *array, int n) {
 	printf("%d\n", n);
@@ -72,18 +141,18 @@ int main(void) {
 	int domain[MAX_REL_SIZE];
 
 	scanf("%d",&to_do);
-	// int size = read_relation(relation);
+	int size = read_relation(relation);
 	int ordered, size_2, n_domain;
 
 	switch (to_do) {
 		case 1:
-			// printf("%d ", is_reflexive(relation, size));
-		// 	printf("%d ", is_irreflexive(relation, size));
-		// 	printf("%d ", is_symmetric(relation, size));
-		// 	printf("%d ", is_antisymmetric(relation, size));
-		// 	printf("%d ", is_asymmetric(relation, size));
-		// 	printf("%d\n", is_transitive(relation, size));
-		// 	break;
+			printf("%d ", is_reflexive(relation, size));
+			printf("%d ", is_irreflexive(relation, size));
+			printf("%d ", is_symmetric(relation, size));
+			printf("%d ", is_antisymmetric(relation, size));
+			printf("%d ", is_asymmetric(relation, size));
+			printf("%d\n", is_transitive(relation, size));
+			break;
 		// case 2:
 		// 	ordered = is_partial_order(relation, size);
 		// 	n_domain = get_domain(relation, size, domain);
@@ -108,4 +177,3 @@ int main(void) {
 	}
 	return 0;
 }
-
