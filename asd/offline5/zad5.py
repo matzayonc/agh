@@ -1,52 +1,58 @@
 from zad5testy import runtests
-# W roku 2050 spokojny Maksymilian odbywa podróż przez pustynię z miasta A do miasta B. Dro-
-# ga pomiędzy miastami jest linią prostą na której w pewnych miejscach znajdują się plamy ropy.
-# Maksymilian porusza się 24 kołową cysterną, która spala 1 litr ropy na 1 kilometr trasy. Cysterna
-# wyposażona jest w pompę pozwalającą zbierać ropę z plam. Aby dojechać z miasta A do miasta
-# B Maksymilian będzie musiał zebrać ropę z niektórych plam (by nie zabrakło paliwa), co każdo-
-# razowo wymaga zatrzymania cysterny. Niestety, droga jest niebezpieczna. Maksymilian musi więc
-# tak zaplanować trasę, by zatrzymać się jak najmniej razy. Na szczęście cysterna Maksymiliana jest
-# ogromna - po zatrzymaniu zawsze może zebrać całą ropę z plamy (w cysternie zmieściłaby się cała
-# ropa na trasie).
-# Zaproponuj i zaimplementuj algorytm wskazujący, w których miejscach trasy Maksymilian powi-
-# nien się zatrzymać i zebrać ropę. Algorytm powinien być możliwe jak najszybszy i zużywać jak
-# najmniej pamięci. Uzasadnij jego poprawność i oszacuj złożoność obliczeniową.
 
 
-(index, paliwo)
-[10, 01, 10, 10, 110100101100110000000000000000000000000000000000000000000000000]
+RANGE = 139
+
+
+def find_top(T, K, a, b, allow_add=True):
+    for i in range(a, b+1):
+        if len(K) < RANGE and allow_add:
+            K.append(i)
+            K.sort(key=lambda x: T[x], reverse=True)
+            continue
+
+        if T[i] > T[K[-1]]:
+            K.append(i)
+            K.sort(key=lambda x: T[x], reverse=True)
+            K.pop()
+
+    return
+
+
+def drain_biggest_below(T, K, below, prev=None):
+
+    if len(K) > 0 and len(K) < RANGE and prev != None:
+        find_top(T, K, prev+1, below, False)
+    else:
+        find_top(T, K, 0, below)
+
+    K.sort(key=lambda x: T[x], reverse=True)
+    m = K.pop(0)
+
+    r = T[m]
+    T[m] = 0
+    return (r, m)
 
 
 def plan(T):
-    M = {}
-    stack = [(0, 0, [])]
-    print(len(T))
+    fire_stations = []
+    farthest = 0
+    prev = 0
+    K = []
 
-    while len(stack):
-        i, b, p = stack.pop(0)
+    while True:
+        r, m = drain_biggest_below(T, K, farthest, prev)
+        prev = farthest
+        farthest += r
 
-        if (i, b) in M:
-            continue
-        else:
-            M[(i, b)] = p
+        fire_stations.append(m)
 
-        e = b + T[i]
-
-        if i + e >= len(T)-1:
-            return [*p, i]
-
-        for k in range(1, e+1):
-            if e - k < 0 or i >= len(T):
-                break
-
-            if T[i+k] == 0:
-                continue
-
-            stack.append((i+k, e-k, [*p, i]))
+        if farthest >= len(T)-1:
+            return sorted(fire_stations)
 
 
 runtests(plan, all_tests=True)
 
+# print(plan([3, 0, 2, 1, 0, 2, 5, 0]))
 
-T = [3, 0, 2, 1, 0, 2, 5, 0]
-print(plan(T))
+# print(drain_biggest_below([3, 0, 2, 1, 0, 2, 5, 0], 7))
