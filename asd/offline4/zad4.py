@@ -1,6 +1,13 @@
+# Mateusz Zając 411113 - Zadanie Offline  4
+
+# funkcja select wywołana dla danego i oznacza że budynek o tym indeksie jest wybierany
+# jako następny wybierany jest ciąg budynków mieszczący największą liczbe studentów na prawo od niego
+
+# Złozoność obliczeniowa to O(n log n) (ze wzgledu na sortowanie), a pamięciowa to O(n)
+
 from zad4testy import runtests
 
-M = {}
+M = []
 
 
 def collides(T, i, j):
