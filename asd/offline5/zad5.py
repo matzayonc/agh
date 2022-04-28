@@ -1,88 +1,69 @@
-from operator import le
 from zad5testy import runtests
 
 
 RANGE = 380
 
 
-def heapify(arr, n, i, T):
-    largest = i
-    l = 2 * i + 1
-    r = 2 * i + 2
+class Heap:
+    def __init__(self, T):
+        self.T = T
+        self.K = []
 
-    if l < n and T[arr[largest]] > T[arr[l]]:
-        largest = l
-    if r < n and T[arr[largest]] > T[arr[r]]:
-        largest = r
+    def insert(self, v):
+        self.K.append(v)
+        self.heapify_up(len(self.K)-1)
 
-    if largest != i:
-        arr[i], arr[largest] = arr[largest], arr[i]  # swap
-        heapify(arr, n, largest, T)
+    def heapify_up(self, i):
+        p = int(((i-1)/2))
 
+        if self.K[p] > 0:
+            if self.T[self.K[i]] > self.T[self.K[p]]:
+                self.K[i], self.K[p] = self.K[p], self.K[i]
+                self.heapify_up(p)
 
-def find_top(T, K, a, b, allow_add=True):
+    def heapify_down(self, n, i):
+        l = 2 * i + 1
+        r = 2 * i + 2
+        m = i
 
-    for i in range(a, b+1):
-        if len(K) < RANGE and allow_add:
-            K.append(i)
+        if l < n and self.T[self.K[m]] < self.T[self.K[l]]:
+            m = l
+        if r < n and self.T[self.K[m]] < self.T[self.K[r]]:
+            m = r
 
-            if len(K) == RANGE:
-                for i in range(len(K)//2 - 1, -1, -1):
-                    heapify(K, len(K), i, T)
+        if m != i:
+            self.K[m], self.K[i] = self.K[i], self.K[m]
+            self.heapify_down(n, m)
 
-            continue
+    def pop(self):
+        self.K[0] = self.K[-1]
+        self.K.pop()
+        self.heapify_down(len(self.K), 0)
 
-        if T[i] > T[K[0]]:
-            K[0] = i
-            heapify(K, len(K), 0, T)
-
-    return
-
-
-def max_from_minheap(K, T):
-    m = 0
-    for i in range(1, len(K)):
-        if T[K[i]] > T[K[m]]:
-            m = i
-
-    if m == len(K)-1:
-        return K.pop()
-
-    r = K[m]
-    K[m] = K.pop()
-    heapify(K, len(K), m, T)
-    return r
-
-
-def drain_biggest_below(T, K, below, prev=None):
-
-    if len(K) > 0 and len(K) < RANGE and prev != None:
-        find_top(T, K, prev+1, below, False)
-    else:
-        find_top(T, K, 0, below)
-
-    m = max_from_minheap(K, T)
-
-    r = T[m]
-    T[m] = 0
-    return (r, m)
+    def top(self):
+        return self.K[0]
 
 
 def plan(T):
-    fire_stations = []
-    farthest = 0
-    prev = 0
-    K = []
+    oasis = []
+    heap = Heap(T)
 
-    while True:
-        r, m = drain_biggest_below(T, K, farthest, prev)
-        prev = farthest
-        farthest += r
+    i = 0
+    fuel = 0
 
-        fire_stations.append(m)
+    for i in range(len(T)-1):
+        if T[i] > 0:
+            heap.insert(i)
 
-        if farthest >= len(T)-1:
-            return sorted(fire_stations)
+        if fuel == 0:
+            fuel += T[heap.top()]
+            oasis.append(heap.top())
+            heap.pop()
+
+        fuel -= 1
+
+    oasis.sort()
+    return oasis
 
 
 runtests(plan, all_tests=True)
