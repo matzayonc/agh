@@ -12,9 +12,18 @@ void set(int cols, int row, int col, double *A, double value);
 
 void prod_mat(int rowsA, int colsA, int colsB, double *A, double *B, double *AB);
 
-void read_mat(int rows, int cols, double *t);
+void read_mat(int rows, int cols, double *t) {
+	for(int i = 0; i < rows; i++)
+		for(int j = 0; j < cols; j++)
+			scanf("%ld", &t[i*cols + j]);
+}
 
-void print_mat(int rows, int cols, double *t);
+void print_mat(int rows, int cols, double *t) {
+	printf("%ld - %ld - %ld - %ld", t[0], t[1], t[2], t[3]);
+	for(int i = 0; i < rows; i++)
+		for(int j = 0; j < cols; j++)
+			printf("%ld, ", t[i*cols + j]);
+}
 
 int read_char_lines(char *tab[]) {
 	char line[BUF_SIZE];
@@ -67,6 +76,7 @@ int main(void) {
 		case 1:
 			scanf("%d %d",&rowsA,&colsA);
 			read_mat(rowsA, colsA, A);
+			/**/print_mat(rowsA, colsA, A);
 			// scanf("%d %d",&rowsB,&colsB);
 			// read_mat(rowsB, colsB, B);
 			// prod_mat(rowsA,colsA,colsB,A,B,C);

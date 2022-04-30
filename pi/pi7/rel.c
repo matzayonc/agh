@@ -8,18 +8,16 @@ typedef struct
 	int first;
 	int second;
 } pair;
-int cmpf(const void *a, const void *b)
-{
+
+int comapare(const void *a, const void *b) {
 	return (*(int *)a - *(int *)b);
 }
+
 // Add pair to existing relation if not already there
-int add_relation(pair *p, int n, pair insert)
-{
+int add_relation(pair *p, int n, pair insert) {
 	for (int i = 0; i < n; ++i)
-	{
 		if (p[i].first == insert.first && p[i].second == insert.second)
 			return n;
-	}
 	p[n].first = insert.first;
 	p[n].second = insert.second;
 	return n + 1;
@@ -116,115 +114,82 @@ int is_transitive(pair *p, int n)
 int get_domain(pair *p, int n, int *domain)
 {
 	int d_size = 0;
-	for (int i = 0; i < n; ++i)
-	{
-		int bool = 0;
+	for (int i = 0; i < n; ++i) {
+		int found = 0;
 		for (int j = 0; j < d_size; ++j)
-		{
-			if (p[i].first == domain[j])
-			{
-				bool = 1;
+			if (p[i].first == domain[j]) {
+				found = 1;
 				break;
 			}
-		}
 
-		if (bool == 0)
-		{
+		if (!found) {
 			domain[d_size] = p[i].first;
 			d_size++;
 		}
 	}
 
-	for (int i = 0; i < n; ++i)
-	{
-		int bool = 0;
-		for (int j = 0; j < d_size; ++j)
-		{
-			if (p[i].second == domain[j])
-			{
-				bool = 1;
-				break;
-			}
-		}
-
-		if (bool == 0)
-		{
-			domain[d_size] = p[i].second;
-			d_size++;
-		}
-	}
-
-	qsort(domain, d_size, sizeof(int), cmpf);
-
-	return d_size;
-}
-int is_connected(pair *p, int n)
-{
-	int domain[2 * n], d_size;
-	d_size = get_domain(p, n, domain);
-	for (int i = 0; i < d_size; ++i)
-	{
-		int bool = 0;
-		for (int j = i + 1; j < d_size; ++j)
-		{
-			for (int k = 0; k < n; ++k)
-			{
-				if ((p[k].first == domain[i] && p[k].second == domain[j]) || (p[k].second ==
-																				  domain[i] &&
-																			  p[k].first == domain[j]))
-				{
-					bool = 1;
-					break;
-				}
-			}
-		}
-
-		if (bool == 0)
-		{
-			return 0;
-		}
-	}
-	return 1;
-}
-int is_partial_order(pair *p, int n)
-{
-	if (is_reflexive(p, n) && is_transitive(p, n) && is_antisymmetric(p, n))
-	{
-		return 1;
-	}
-
-	return 0;
-}
-// // A total order relation is a partial order relation that is connected
-int is_total_order(pair *p, int n)
-{
-	if (is_partial_order(p, n) && is_connected(p, n))
-	{
-		return 1;
-	}
-
-	return 0;
-}
-// // Relation R is connected if for each x, y in X:
-// // xRy or yRx (or both)
-int find_max_elements(pair *p, int n, int *max_el)
-{
-	int result = 0;
-	for (int i = 0; i < n; ++i)
-	{
-		int bool = 0;
+	for (int i = 0; i < n; ++i) {
 		int found = 0;
-		int snd = p[i].second;
-
-		for (int j = 0; j < result; ++j)
-			if (snd == max_el[j])
+		for (int j = 0; j < d_size; ++j)
+			if (p[i].second == domain[j])
 			{
 				found = 1;
 				break;
 			}
 
-		if (!found)
-		{
+		if (!found) {
+			domain[d_size] = p[i].second;
+			d_size++;
+		}
+	}
+
+	qsort(domain, d_size, sizeof(int), comapare);
+	return d_size;
+}
+
+int is_connected(pair *p, int n) {
+	int domain[2 * n], d_size;
+	d_size = get_domain(p, n, domain);
+
+	for (int i = 0; i < d_size; ++i) {
+		int bool = 0;
+		for (int j = i + 1; j < d_size; ++j) 
+			for (int k = 0; k < n; ++k) 
+				if ((p[k].first == domain[i] && p[k].second == domain[j])
+				 || (p[k].second == domain[i] && p[k].first == domain[j]))
+				{
+					bool = 1;
+					break;
+				}
+
+		if (!bool)
+			return 0;
+	}
+	return 1;
+}
+int is_partial_order(pair *p, int n) {
+	return is_reflexive(p, n) && is_transitive(p, n) && is_antisymmetric(p, n);
+}
+// // A total order relation is a partial order relation that is connected
+int is_total_order(pair *p, int n) {
+	return is_partial_order(p, n) && is_connected(p, n);
+}
+// // Relation R is connected if for each x, y in X:
+// // xRy or yRx (or both)
+int find_max_elements(pair *p, int n, int *max_el) {
+	int result = 0;
+	for (int i = 0; i < n; ++i) {
+		int bool = 0;
+		int found = 0;
+		int snd = p[i].second;
+
+		for (int j = 0; j < result; ++j)
+			if (snd == max_el[j]) {
+				found = 1;
+				break;
+			}
+
+		if (!found) {
 			bool = 1;
 			for (int k = 0; k < n; ++k)
 			{
@@ -236,39 +201,31 @@ int find_max_elements(pair *p, int n, int *max_el)
 			}
 		}
 
-		if (bool)
-		{
+		if (bool) {
 			max_el[result] = snd;
-			result += 1;
+			result++;
 		}
 	}
 
-	qsort(max_el, result, sizeof(int), cmpf);
-
+	qsort(max_el, result, sizeof(int), comapare);
 	return result;
 }
-int find_min_elements(pair *p, int n, int *min_el)
-{
+int find_min_elements(pair *p, int n, int *min_el) {
 	int result = 0;
-	for (int i = 0; i < n; ++i)
-	{
+	for (int i = 0; i < n; ++i) {
 		int bool = 0;
 		int found = 0;
 		int snd = p[i].first;
 
 		for (int j = 0; j < result; ++j)
-			if (snd == min_el[j])
-			{
+			if (snd == min_el[j]) {
 				found = 1;
 				break;
 			}
-		if (!found)
-		{
+		if (!found) {
 			bool = 1;
-			for (int k = 0; k < n; ++k)
-			{
-				if (p[k].second == snd && p[k].first != snd)
-				{
+			for (int k = 0; k < n; ++k) {
+				if (p[k].second == snd && p[k].first != snd) {
 					bool = 0;
 					break;
 				}
@@ -282,7 +239,7 @@ int find_min_elements(pair *p, int n, int *min_el)
 		}
 	}
 
-	qsort(min_el, result, sizeof(int), cmpf);
+	qsort(min_el, result, sizeof(int), comapare);
 
 	return result;
 }
@@ -290,19 +247,14 @@ int find_min_elements(pair *p, int n, int *min_el)
 int composition(pair *p2, int n2, pair *p1, int n1, pair *res)
 {
 	int size = 0;
-	for (int i = 0; i < n2; i++)
-	{
-		for (int j = 0; j < n1; j++)
-		{
-			if (p2[i].second == p1[j].first)
-			{
+	for (int i = 0; i < n2; i++) 
+		for (int j = 0; j < n1; j++) 
+			if (p2[i].second == p1[j].first) {
 				pair tmp;
 				tmp.first = p2[i].first;
 				tmp.second = p1[j].second;
 				size = add_relation(res, size, tmp);
 			}
-		}
-	}
 
 	return size;
 }
@@ -317,8 +269,7 @@ int read_relation(pair *p)
 {
 	int n, f, s;
 	scanf("%d", &n);
-	for (int i = 0; i < n; ++i)
-	{
+	for (int i = 0; i < n; ++i) {
 		scanf("%d"
 			  "%d",
 			  &f, &s);
@@ -331,8 +282,7 @@ int read_relation(pair *p)
 void print_int_array(int *array, int n)
 {
 	printf("%d\n", n);
-	for (int i = 0; i < n; ++i)
-	{
+	for (int i = 0; i < n; ++i) {
 		printf("%d ", array[i]);
 	}
 	printf("\n");
