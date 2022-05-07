@@ -1,7 +1,11 @@
+# Zadanie offline 5
+
+# Algorytm znajduje największą plame która znajduje się przed polem na ktorym braklo paliwa
+# do znajdywania maksimum używany jest kopiec
+
+# Złożonośc to O(n log n), ponieważ jest n elementów, z którego dodanie każdego do kolejku zajmuje log n czasu
+
 from zad5testy import runtests
-
-
-RANGE = 380
 
 
 class Heap:
@@ -52,6 +56,7 @@ def plan(T):
     fuel = 0
 
     for i in range(len(T)-1):
+
         if T[i] > 0:
             heap.insert(i)
 
