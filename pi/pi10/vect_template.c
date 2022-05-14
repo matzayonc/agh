@@ -68,7 +68,8 @@ void resize(Vector *vector, size_t new_size)
 // Add element to the end of the vector
 void push_back(Vector *vector, void *value)
 {
-	reserve(vector, vector->size + 1);
+	if (vector->size + 1 > vector->capacity)
+		reserve(vector, vector->capacity * 2);
 
 	void *el = vector->data + (vector->size * vector->element_size);
 	memcpy(el, value, vector->element_size);
@@ -90,7 +91,9 @@ void pop_back(Vector *vector)
 // Insert new element at index (0 <= index <= size) position
 void insert(Vector *vector, int index, void *value)
 {
-	reserve(vector, vector->size + 1);
+	if (vector->size + 1 > vector->capacity)
+		reserve(vector, vector->capacity * 2);
+
 	vector->size += 1;
 
 	for (int i = vector->size - 2; i >= index; i--)
@@ -100,6 +103,7 @@ void insert(Vector *vector, int index, void *value)
 	}
 
 	void *el = vector->data + (index * vector->element_size);
+	// memmove(el + vector->element_size, el, (vector->size - index) * vector->element_size)
 	memcpy(el, value, vector->element_size);
 }
 
@@ -153,7 +157,7 @@ void shrink_to_fit(Vector *vector)
 // Print integer vector
 void print_vector_int(Vector *vector)
 {
-	printf("%zu\n", vector->size);
+	printf("%zu\n", vector->capacity);
 
 	for (int i = 0; i < vector->size; i++)
 	{
@@ -165,7 +169,7 @@ void print_vector_int(Vector *vector)
 // Print char vector
 void print_vector_char(Vector *vector)
 {
-	printf("%zu\n", vector->size);
+	printf("%zu\n", vector->capacity);
 
 	for (int i = 0; i < vector->size; i++)
 	{
@@ -177,7 +181,7 @@ void print_vector_char(Vector *vector)
 // Print vector of Person
 void print_vector_person(Vector *vector)
 {
-	printf("%zu\n", vector->size);
+	printf("%zu\n", vector->capacity);
 
 	for (int i = 0; i < vector->size; i++)
 	{
@@ -213,11 +217,11 @@ int person_cmp(const void *p1, const void *p2)
 	if (a->age != b->age)
 		return b->age - a->age;
 
-	int first_name_cmp = strcmp(b->first_name, a->first_name);
+	int first_name_cmp = strcmp(a->first_name, b->first_name);
 	if (first_name_cmp)
 		return first_name_cmp;
 
-	return strcmp(b->last_name, a->last_name);
+	return strcmp(a->last_name, b->last_name);
 }
 
 // predicate: check if number is even
@@ -238,6 +242,13 @@ int is_vowel(void *value)
 	case 'i':
 	case 'o':
 	case 'u':
+	case 'y':
+	case 'A':
+	case 'E':
+	case 'I':
+	case 'O':
+	case 'U':
+	case 'Y':
 		return 1;
 	default:
 		return 0;
@@ -338,18 +349,18 @@ int main(void)
 		print_vector_int(&vector_int);
 		free(vector_int.data);
 		break;
-	// case 2:
-	// 	init_vector(&vector_char, 2, sizeof(char));
-	// 	vector_test(&vector_char, n, read_char, char_cmp, is_vowel);
-	// 	print_vector_char(&vector_char);
-	// 	free(vector_char.data);
-	// 	break;
-	// case 3:
-	// 	init_vector(&vector_person, 2, sizeof(Person));
-	// 	vector_test(&vector_person, n, read_person, person_cmp, is_older_than_25);
-	// 	print_vector_person(&vector_person);
-	// 	free(vector_person.data);
-	// 	break;
+	case 2:
+		init_vector(&vector_char, 2, sizeof(char));
+		vector_test(&vector_char, n, read_char, char_cmp, is_vowel);
+		print_vector_char(&vector_char);
+		free(vector_char.data);
+		break;
+	case 3:
+		init_vector(&vector_person, 2, sizeof(Person));
+		vector_test(&vector_person, n, read_person, person_cmp, is_older_than_25);
+		print_vector_person(&vector_person);
+		free(vector_person.data);
+		break;
 	default:
 		printf("Nothing to do for %d\n", to_do);
 		break;
