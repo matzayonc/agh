@@ -20,7 +20,7 @@ int cmp_person(const void *p1, const void *p2) {
 	if(diff) return diff;
 
 	int first_diff = strcmp(per1->first_name, per2->first_name);
-	
+
 	if(first_diff) return first_diff;
 
 	return strcmp(per1->last_name, per2->last_name);
@@ -31,12 +31,16 @@ int read_person_array(Person *persons) {
     char c = '\n';
 	int p = 0;
 
+
 	while(c != EOF) {
-		char age_str[MAX_STR_LEN];	
+		char age_str[MAX_STR_LEN];
 		int i = 0;
 
-        while ((c = getchar()) != ' ')
+        while ((c = getchar()) != ' ' && c != '\n' && c != EOF)
 			age_str[i++] = c;
+
+		if(i == 0)
+			return p;
 
 		age_str[i] = '\0';
 		persons[p].age = atoi(age_str);
@@ -62,17 +66,70 @@ void print_person_array(Person *persons, int n) {
 		printf("%i %s %s\n", persons[i].age, persons[i].first_name, persons[i].last_name);
 }
 
+char* start_of_next_word(char* str) {
+	while(str[0] != ' ')
+		str += sizeof(char);
+	str += sizeof(char);
+	return str;
+}
+
+int is_woman(char* str) {
+	char* last = start_of_next_word(start_of_next_word(str));
+	last -= 2 * sizeof(char);
+	return *last == 'a';
+}
+
 // Sort women first (woman's first name ends with 'a');
 // Then sort women by age and men by last name
 // Line consists of: age, first_name, last_name
 // (int that order)
-int cmp_lines(const void *l1, const void *l2);
+int cmp_lines(const void *l1, const void *l2) {
+	char* s1 = (char*) l1;
+	char* s2 = (char*) l2;
+
+	int is_woman1 = is_woman(s1);
+	int is_woman2 = is_woman(s2);
+
+	if(is_woman1 && !is_woman2)
+		return -1;
+
+	if(!is_woman1 && is_woman2)
+		return 1;
+
+	if(is_woman1 && is_woman2)
+		return atoi(s1) - atoi(s2);
+
+	char* last1 = start_of_next_word(start_of_next_word(s1));
+	char* last2 = start_of_next_word(start_of_next_word(s2));
+
+	return strcmp(last1, last2);
+}
 
 // Read lines with students' data (as text)
-int read_lines(char lines[][MAX_STR_LEN]);
+int read_lines(char lines[][MAX_STR_LEN]) {
+	int n = 0;
+	char c = '\n';
+
+	while (c != EOF) {
+		int i = 0;
+		while ((c = getchar()) != '\n' && c != EOF)
+			lines[n][i++] = c;
+
+		lines[n][i] = '\0';
+
+		if(i == 0)
+			return n;
+
+		n++;
+	}
+	return n;
+}
 
 // Print sorted lines
-void print_lines(char lines[][MAX_STR_LEN], int n);
+void print_lines(char lines[][MAX_STR_LEN], int n) {
+	for(int i = 0; i < n; i++)
+		printf("%s\n", lines[i]);
+}
 
 // -------------------------------------------------
 
@@ -95,11 +152,11 @@ int main(void) {
 			qsort(persons, (size_t)n, sizeof(Person), cmp_person);
 			print_person_array(persons, n);
 			break;
-		// case 2:
-		// 	n = read_lines(lines);
-		// 	qsort(lines, (size_t) n, MAX_STR_LEN, cmp_lines);
-		// 	print_lines(lines, n);
-		// 	break;
+		case 2:
+			n = read_lines(lines);
+			qsort(lines, (size_t) n, MAX_STR_LEN, cmp_lines);
+			print_lines(lines, n);
+			break;
 		default:
 			printf("Nothing to do for %d\n", to_do);
 			break;
