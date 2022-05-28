@@ -48,9 +48,17 @@ def is_valid(A):
     return all(V)
 
 
+def try_remove(G, Q):
+    k, (i, j) = Q.get()
+    G[i][j] = G[j][i] = None
+    if not is_valid(G):
+        G[i][j] = G[j][i] = abs(-k)
+        return False
+    return True
+
+
 def highway(A):
     G = [[0 for _ in A] for _ in A]
-    P = [None for _ in A]
     Q = PriorityQueue()
     U = PriorityQueue()
 
@@ -61,21 +69,17 @@ def highway(A):
             Q.put((k, (i, j)))
             U.put((-k, (i, j)))
 
+    G2 = [[i for i in j] for j in G]
+
     while not U.empty():
-        k, (i, j) = U.get()
-        G[i][j] = G[j][i] = None
-        if not is_valid(G):
-            G[i][j] = G[j][i] = -k
+        if not try_remove(G, U):
             break
 
     while not Q.empty():
-        k, (i, j) = Q.get()
-        G[i][j] = G[j][i] = None
-        if not is_valid(G):
-            G[i][j] = G[j][i] = k
+        if not try_remove(G, Q):
             break
 
     return eval(G)
 
 
-runtests(highway, all_tests=False)
+runtests(highway, all_tests=True)
