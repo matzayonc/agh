@@ -1,8 +1,81 @@
 from zad8testy import runtests
 
-def highway( A ):
-    # tu prosze wpisac wlasna implementacje
-    return None
+import heapq
+from math import sqrt
+from heapq import heappush, heappop
+from queue import PriorityQueue
 
-# zmien all_tests na True zeby uruchomic wszystkie testy
-runtests( highway, all_tests = False )
+
+def eval(G):
+    m = None
+    n = None
+
+    for j in G:
+        for i in j:
+            if i != None:
+                if m == None:
+                    m = i
+                else:
+                    m = min(m, i)
+                if n == None:
+                    n = i
+                else:
+                    n = max(n, i)
+
+    return n - m
+
+
+def d(a, b):
+    x = a[0] - b[0]
+    y = a[1] - b[1]
+    return sqrt(x*x + y*y)
+
+
+def is_valid(A):
+    Q = [0]
+    V = [False for _ in A]
+    heappush(Q, 0)
+
+    while len(Q) > 0:
+        q = heappop(Q)
+        V[q] = True
+
+        for u in range(len(A[q])):
+            if A[q][u] != None:
+                if not V[u]:
+                    heappush(Q, u)
+
+    return all(V)
+
+
+def highway(A):
+    G = [[0 for _ in A] for _ in A]
+    P = [None for _ in A]
+    Q = PriorityQueue()
+    U = PriorityQueue()
+
+    for i in range(len(A)):
+        for j in range(i, len(A)):
+            k = d(A[i], A[j])
+            G[i][j] = G[j][i] = k
+            Q.put((k, (i, j)))
+            U.put((-k, (i, j)))
+
+    while not U.empty():
+        k, (i, j) = U.get()
+        G[i][j] = G[j][i] = None
+        if not is_valid(G):
+            G[i][j] = G[j][i] = -k
+            break
+
+    while not Q.empty():
+        k, (i, j) = Q.get()
+        G[i][j] = G[j][i] = None
+        if not is_valid(G):
+            G[i][j] = G[j][i] = k
+            break
+
+    return eval(G)
+
+
+runtests(highway, all_tests=False)
