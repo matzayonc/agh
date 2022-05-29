@@ -2,6 +2,7 @@ from zad8testy import runtests
 
 from math import ceil, sqrt
 from queue import PriorityQueue, Queue
+from collections import deque
 
 
 def d(a, b):
@@ -12,21 +13,20 @@ def d(a, b):
 
 def is_connected(G):
     V = [False for _ in G]
-    Q = []
-    Q.append(0)
+    Q = deque([0])
 
     while len(Q) > 0:
         q = Q.pop()
         V[q] = True
-        for u in range(len(G[q])):
-            if G[q][u] and not V[u]:
+        for u in G[q]:
+            if not V[u]:
                 Q.append(u)
 
     return all(V)
 
 
 def highway(A):
-    G = [[False for _ in A] for _ in A]
+    G = [deque() for _ in A]
     E = []
 
     for i in range(len(A)):
@@ -47,7 +47,9 @@ def highway(A):
                 m = diff
 
             k, (i, j) = E[low]
-            G[i][j] = G[j][i] = None
+            # G[i][j] = G[j][i] = None
+            G[i].popleft()
+            G[j].popleft()
             low += 1
         else:
             high += 1
@@ -55,11 +57,11 @@ def highway(A):
                 break
 
             k, (i, j) = E[high]
-            G[i][j] = G[j][i] = True
+            # G[i][j] = G[j][i] = True
+            G[i].append(j)
+            G[j].append(i)
 
     return m
 
 
 runtests(highway, all_tests=True)
-
-# print(highway([(100, 100), (100, 200), (200, 100), (200, 200), (150, 151)]))
