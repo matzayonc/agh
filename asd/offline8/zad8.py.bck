@@ -1,0 +1,147 @@
+from xmlrpc.server import list_public_methods
+from zad8testy import runtests
+
+import heapq
+from math import sqrt
+from heapq import heappush, heappop
+from queue import PriorityQueue, Queue
+
+
+def eval(G):
+    m = None
+    n = None
+
+    for j in G:
+        for i in j:
+            if i != None:
+                if m == None:
+                    m = i
+                else:
+                    m = min(m, i)
+                if n == None:
+                    n = i
+                else:
+                    n = max(n, i)
+
+    return n - m
+
+
+def d(a, b):
+    x = a[0] - b[0]
+    y = a[1] - b[1]
+    return sqrt(x*x + y*y)
+
+
+def is_valid(A):
+    Q = [0]
+    V = [False for _ in A]
+    heappush(Q, 0)
+
+    while len(Q) > 0:
+        q = heappop(Q)
+        V[q] = True
+
+        for u in range(len(A[q])):
+            if A[q][u] != None:
+                if not V[u]:
+                    heappush(Q, u)
+
+    return all(V)
+
+
+def try_remove(G, Q):
+    k, (i, j) = Q.get()
+    G[i][j] = G[j][i] = None
+    if not is_valid(G):
+        G[i][j] = G[j][i] = abs(-k)
+        return False
+    return True
+
+
+def calc_for_focus(A, focus):
+    G = [[0 for _ in A] for _ in A]
+    V = [False for _ in A]
+
+    Q = PriorityQueue()
+    t = None
+    for i in range(len(A)):
+        for j in range(i, len(A)):
+            t = d(A[i], A[j])
+            G[i][j] = G[j][i] = t
+            # Q.put((k, (i, j)))
+
+    n = t
+    m = t
+    Q.put((0, 0))
+
+    while not Q.empty():
+        k, i = Q.get()
+
+        if V[i]:
+            continue
+
+        V[i] = True
+        for j in range(len(A)):
+            if not V[j]:
+                Q.put((abs(G[i][j] - focus), j))
+
+        if k < n:
+            n = k
+        if k > m:
+            m = k
+
+    return m - n
+
+
+def min_tree_over(G, limit):
+    Q = PriorityQueue()
+    V = [False for _ in G]
+
+    Q.put(0, 0)
+    m = (G, 0)
+
+    while not Q.empty():
+        k, v = Q.get()
+        m = max(k, m)
+        if V[v]:
+            continue
+        V[v] = True
+
+        for i in range(len(G)):
+            if not V[i] and G[v][i] != None:
+                if G[v][i] >= limit:
+                    Q.put(G[v][i], i)
+
+    if m == 0:
+        return None
+    else:
+        return m - limit
+
+
+def highway(A):
+    G = [[0 for _ in A] for _ in A]
+    V = [False for _ in A]
+
+    Q = PriorityQueue()
+    t = None
+
+    for i in range(len(A)):
+        for j in range(i, len(A)):
+            t = d(A[i], A[j])
+            G[i][j] = G[j][i] = t
+            # Q.put((k, (i, j)))
+
+    m = (A, 0)
+    for i in range(10000):
+        m = min(m, calc_for_focus(A, i))
+
+    return m
+
+
+# runtests(highway, all_tests=True)
+
+print(min_tree_over([
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0]
+], 1))
