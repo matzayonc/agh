@@ -12,58 +12,49 @@ def d(a, b):
 
 def is_connected(G):
     V = [False for _ in G]
-    Q = Queue()
-    Q.put(0)
+    Q = []
+    Q.append(0)
 
-    while not Q.empty():
-        q = Q.get()
+    while len(Q) > 0:
+        q = Q.pop()
         V[q] = True
         for u in range(len(G[q])):
             if G[q][u] and not V[u]:
-                Q.put(u)
+                Q.append(u)
 
     return all(V)
 
 
 def highway(A):
     G = [[False for _ in A] for _ in A]
-
-    Top = PriorityQueue()
-    Bottom = PriorityQueue()
-    # E = []
+    E = []
 
     for i in range(len(A)):
         for j in range(i+1, len(A)):
             t = d(A[i], A[j])
-            Top.put((t, (i, j)))
-            Bottom.put((t, (i, j)))
-            # E.append((t, (i, j)))
+            E.append((t, (i, j)))
 
-    # E.sort(key=lambda x: x[0])
+    E.sort(key=lambda x: x[0])
 
-    low = Bottom.get()
-    high = Top.get()
-    i, j = high[1]
-    G[i][j] = G[j][i] = True
-
+    low = 0
+    high = -1
     m = None
 
     while True:
         while is_connected(G):
-            diff = high[0] - low[0]
-
+            diff = E[high][0] - E[low][0]
             if m == None or diff < m:
                 m = diff
 
-            i, j = low[1]
+            k, (i, j) = E[low]
             G[i][j] = G[j][i] = None
-            low = Bottom.get()
+            low += 1
         else:
-            if Top.empty():
+            high += 1
+            if high >= len(E):
                 break
-            high = Top.get()
 
-            i, j = high[1]
+            k, (i, j) = E[high]
             G[i][j] = G[j][i] = True
 
     return m
