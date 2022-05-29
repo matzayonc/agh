@@ -15,8 +15,10 @@ def is_connected(G):
     V = [False for _ in G]
     Q = deque([0])
 
-    while len(Q) > 0:
+    while Q:
         q = Q.pop()
+        if V[q]:
+            continue
         V[q] = True
         for u in G[q]:
             if not V[u]:
@@ -35,6 +37,7 @@ def highway(A):
             E.append((t, (i, j)))
 
     E.sort(key=lambda x: x[0])
+    E = deque(E)
 
     low = 0
     high = -1
@@ -47,10 +50,12 @@ def highway(A):
                 m = diff
 
             k, (i, j) = E[low]
-            # G[i][j] = G[j][i] = None
             G[i].popleft()
             G[j].popleft()
-            low += 1
+
+            E.popleft()
+            high -= 1
+
         else:
             high += 1
             if high >= len(E):
