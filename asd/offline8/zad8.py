@@ -1,6 +1,5 @@
 from zad8testy import runtests
 
-import heapq
 from math import ceil, sqrt
 from queue import PriorityQueue, Queue
 
@@ -50,9 +49,9 @@ def highway(A):
     m = None
 
     while True:
-        diff = high[0] - low[0]
+        while is_connected(G):
+            diff = high[0] - low[0]
 
-        if is_connected(G):
             if m == None or diff < m:
                 m = diff
 
