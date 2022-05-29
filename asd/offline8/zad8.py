@@ -37,32 +37,34 @@ def highway(A):
             E.append((t, (i, j)))
 
     E.sort(key=lambda x: x[0])
+    F = deque(E)
     E = deque(E)
 
-    low = 0
-    high = -1
+    low = None
+    high_i = -1
+    high = None
     m = None
 
     while True:
         while is_connected(G):
-            diff = E[high][0] - E[low][0]
+
+            low = E.popleft()
+            k, (i, j) = low
+
+            diff = high[0] - k
             if m == None or diff < m:
                 m = diff
 
-            k, (i, j) = E[low]
             G[i].popleft()
             G[j].popleft()
 
-            E.popleft()
-            high -= 1
-
         else:
-            high += 1
-            if high >= len(E):
+            if not F:
                 break
 
-            k, (i, j) = E[high]
-            # G[i][j] = G[j][i] = True
+            high = F.popleft()
+
+            _, (i, j) = high
             G[i].append(j)
             G[j].append(i)
 
