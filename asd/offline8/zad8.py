@@ -1,3 +1,12 @@
+# Zadanie Offline 8 - Mateusz Zajac 411113
+# Graf powstaje poprzez potraktowanie każdego miasta jak wierzcholka, a możliwej drogi jako krawędzi
+# Algorytm 'pełznie' po posortowanej tablicy krawędzi:
+#    * usuwając najkrótszą krawędź jeśli graf jest spójny
+#    * dodając najkrótszą większą od pozostałycg w grafie
+# oraz monitorując minimalną różnice między najkrótszą a najdłuższą
+# Złożonośc pamięciowa to O(n^2), a obliczeniowa to O(E^2 log V) (sprawdzenie spójności dla E krawędzi)
+
+
 from zad8testy import runtests
 
 from math import ceil, sqrt
@@ -12,17 +21,18 @@ def d(a, b):
 
 
 def is_connected(G):
+    for v in G:
+        if not len(v):
+            return False
+
     V = [False for _ in G]
     Q = deque([0])
 
     while Q:
-        q = Q.pop()
-        if V[q]:
-            continue
-        V[q] = True
-        for u in G[q]:
-            if not V[u]:
-                Q.append(u)
+        for v in G[Q.pop()]:
+            if not V[v]:
+                V[v] = True
+                Q.append(v)
 
     return all(V)
 
@@ -41,7 +51,6 @@ def highway(A):
     E = deque(E)
 
     low = None
-    high_i = -1
     high = None
     m = None
 
