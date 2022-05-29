@@ -1,85 +1,70 @@
+from xmlrpc.server import list_public_methods
 from zad8testy import runtests
 
 import heapq
-from math import sqrt
+from math import ceil, sqrt
 from heapq import heappush, heappop
-from queue import PriorityQueue
-
-
-def eval(G):
-    m = None
-    n = None
-
-    for j in G:
-        for i in j:
-            if i != None:
-                if m == None:
-                    m = i
-                else:
-                    m = min(m, i)
-                if n == None:
-                    n = i
-                else:
-                    n = max(n, i)
-
-    return n - m
+from queue import PriorityQueue, Queue
 
 
 def d(a, b):
     x = a[0] - b[0]
     y = a[1] - b[1]
-    return sqrt(x*x + y*y)
+    return ceil(sqrt(x*x + y*y))
 
 
-def is_valid(A):
-    Q = [0]
-    V = [False for _ in A]
-    heappush(Q, 0)
+def is_connected(G):
+    V = [False for _ in G]
+    Q = Queue()
+    Q.put(0)
 
-    while len(Q) > 0:
-        q = heappop(Q)
+    while not Q.empty():
+        q = Q.get()
         V[q] = True
-
-        for u in range(len(A[q])):
-            if A[q][u] != None:
-                if not V[u]:
-                    heappush(Q, u)
+        for u in range(len(G[q])):
+            if G[q][u] != None and not V[u]:
+                Q.put(u)
 
     return all(V)
 
 
-def try_remove(G, Q):
-    k, (i, j) = Q.get()
-    G[i][j] = G[j][i] = None
-    if not is_valid(G):
-        G[i][j] = G[j][i] = abs(-k)
-        return False
-    return True
-
-
 def highway(A):
-    G = [[0 for _ in A] for _ in A]
-    Q = PriorityQueue()
-    U = PriorityQueue()
+    G = [[None for _ in A] for _ in A]
+    E = []
 
     for i in range(len(A)):
-        for j in range(i, len(A)):
-            k = d(A[i], A[j])
+        for j in range(i+1, len(A)):
+            t = d(A[i], A[j])
+            # G[i][j] = G[j][i] = t
+            E.append((t, (i, j)))
+
+    E.sort(key=lambda x: x[0])
+
+    low = 0
+    high = 0
+    m = None
+
+    while True:
+
+        if is_connected(G):
+            diff = E[high][0] - E[low][0]
+            if m == None or diff < m:
+                m = diff
+
+            k, (i, j) = E[low]
+            G[i][j] = G[j][i] = None
+            low += 1
+        else:
+            high += 1
+            if high >= len(E):
+                break
+
+            k, (i, j) = E[high]
             G[i][j] = G[j][i] = k
-            Q.put((k, (i, j)))
-            U.put((-k, (i, j)))
 
-    G2 = [[i for i in j] for j in G]
-
-    while not U.empty():
-        if not try_remove(G, U):
-            break
-
-    while not Q.empty():
-        if not try_remove(G, Q):
-            break
-
-    return eval(G)
+    return m
 
 
 runtests(highway, all_tests=True)
+
+# print(highway([(10, 10), (20, 20), (30, 40)]))
