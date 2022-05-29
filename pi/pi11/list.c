@@ -38,7 +38,6 @@ typedef struct tagList
 void init_list(List *p_list, ConstDataFp dump_data, DataFp free_data,
 			   CompareDataFp compare_data, InsertInOrder insert_sorted)
 {
-
 	p_list = malloc(sizeof(List));
 	p_list->head = NULL;
 	p_list->tail = NULL;
@@ -51,21 +50,44 @@ void init_list(List *p_list, ConstDataFp dump_data, DataFp free_data,
 // Print all elements of the list
 void dump_list(const List *p_list)
 {
+	ListElement *curr = p_list->head;
+	do
+	{
+		p_list->dump_data(curr->data);
+	} while ((curr = curr->next) != NULL);
 }
 
 // Print elements of the list if comparable to data
 void dump_list_if(List *p_list, void *data)
 {
+	ListElement *curr = p_list->head;
+	do
+	{
+		if (p_list->compare_data(curr->data, data) == 0)
+			p_list->dump_data(curr->data);
+	} while ((curr = curr->next) != NULL);
 }
 
 // Free all elements of the list
 void free_list(List *p_list)
 {
+	ListElement *curr = p_list->head;
+	while (curr != NULL)
+	{
+		p_list->free_data(curr->data);
+		curr = curr->next;
+		free(curr);
+	}
+	free(p_list);
 }
 
 // Push element at the beginning of the list
 void push_front(List *p_list, void *data)
 {
+	ListElement *el = malloc(sizeof(ListElement));
+	el->data = data;
+	el->next = p_list->head;
+	p_list->head = el;
 }
 
 // Push element at the end of the list
@@ -86,11 +108,34 @@ void push_back(List *p_list, void *data)
 // Remove the first element
 void pop_front(List *p_list)
 {
+	// assumes non empty
+	ListElement *deleted = p_list->head;
+	p_list->head = deleted->next;
+	if (!p_list->head)
+		p_list->tail = NULL;
+
+	p_list->free_data(deleted->data);
+	free(deleted);
 }
 
 // Reverse the list
 void reverse(List *p_list)
 {
+	ListElement *curr;
+	ListElement *prev = p_list->head;
+	if (!prev)
+		return;
+
+	ListElement *next = prev->next;
+	p_list->head = p_list->tail;
+	p_list->tail = prev;
+
+	while (curr = next)
+	{
+		next = curr->next;
+		curr->next = prev;
+		prev = curr;
+	}
 }
 
 // insert element preserving the ordering (defined by insert_sorted function)
@@ -102,11 +147,22 @@ void insert_in_order(List *p_list, void *data)
 // find element in sorted list after which to insert given element
 ListElement *find_insertion_point(const List *p_list, ListElement *p_element)
 {
+	ListElement *curr = p_list->head;
+	do
+	{
+		if (p_list->compare_data(curr->next->data, p_element->data) >= 0)
+			return curr;
+
+	} while ((curr = curr->next)->next != NULL);
 }
 
 // Insert element after 'previous'
 void push_after(List *p_list, void *data, ListElement *previous)
 {
+	ListElement *after = previous->next;
+	previous->next = malloc(sizeof(ListElement));
+	previous->next->data = data;
+	previous->next->next = after;
 }
 
 // Insert element preserving order (no counter)
