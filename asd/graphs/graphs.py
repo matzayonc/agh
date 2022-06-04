@@ -2,11 +2,6 @@
 from collections import deque
 
 
-class Visited:
-    def __init__(self, v: bool):
-        self.v = v
-
-
 def is_connected(G):
     for v in G:
         if not len(v):
@@ -25,29 +20,29 @@ def is_connected(G):
 
 
 def eulerian_cycle(G):
-    cycle = [0]
-    Q = deque(cycle)
+    cycle = []
+    Q = deque([0])
 
     while Q:
-        q = Q.pop()
+        q = Q[-1]
+        if not G[q]:
+            cycle.append(Q.pop())
+            continue
 
-        v = G[q].pop(0)
+        v = G[q].pop()
+        G[v].remove(q)
 
-        found = False
-        for index, i in enumerate(G[v]):
-            if i == q:
-                G[v].pop(index)
-                found = True
-
-        if not found:
-            print('exception')
-
-        if G[v]:
-            Q.append(v)
-            cycle.append(v)
+        Q.append(v)
 
     return cycle
 
 
-G = [[1, 3], [2, 0], [3, 1], [0, 2]]
-print(eulerian_cycle(G))
+EULER_EXAMPLE = [
+    [1, 2],
+    [0, 5, 2, 3],
+    [0, 1, 3, 5],
+    [1, 2, 4, 5],
+    [3, 5],
+    [3, 4, 2, 1]
+]
+print(eulerian_cycle(EULER_EXAMPLE))
