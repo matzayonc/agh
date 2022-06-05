@@ -1,5 +1,7 @@
 #!/usr/bin/python3
+from ast import While
 from collections import deque
+import queue
 
 IN_ORDER_EXAMPLE = [
     [1],  # A
@@ -158,4 +160,16 @@ def find_connected_subgraphs(G):
     return R
 
 
-print(find_connected_subgraphs(CONNECTED_SUBGRAPH_EXAMPLE))
+# print(find_connected_subgraphs(CONNECTED_SUBGRAPH_EXAMPLE))
+
+
+BRIDGES_EXAMPLE = [
+    [1, 6],
+    [0, 2],
+    [1, 3, 5, 6],
+    [2, 4],
+    [3, 5],
+    [2, 4],
+    [0, 2],
+    [6]
+]
