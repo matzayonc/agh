@@ -106,29 +106,24 @@ def list_to_graph(G):
     return D
 
 
-def maxflow(D, s):
-
+def highway(G, s):
     m = 0
+    D = list_to_graph(G)
+    last = len(D)
 
-    G = list_to_graph(D)
-
-    print(G)
-
-    l = len(G)
-
-    for i in range(l):
-        for j in range(i+1, l):
+    for i in range(last):
+        for j in range(i+1, last):
             if i == s or j == s:
                 continue
 
-            G[i].append((l, BIG))
-            G[j].append((l, BIG))
-            G.append([])
+            D[i].append((last, BIG))
+            D[j].append((last, BIG))
+            D.append([])
 
-            m = max(m, find_max_flow(G, s, l))
-            G = list_to_graph(D)
+            m = max(m, find_max_flow(D, s, last))
+            D = list_to_graph(G)
 
     return m
 
 
-runtests(maxflow, all_tests=True)
+runtests(highway, all_tests=True)
