@@ -1,3 +1,10 @@
+# Offline 9 - Mateusz Zając 411113
+# Algorytm działa poprzez stworzenie z tablicy rurociągów grafu, dodanie na jej koniec docelowego miasta,
+# a następnie iteracje wybierając 2 miasta i łącząc je z docelowym.
+# Wynikiem jest maksimum z maksymalnych przepływów znalezionych metodą Forda-Fulkersona.
+# Złożonośc to O(V^2) na wybranie wierzchołków, oraz O(E * max_flow) (pesymistycznie)
+# Złożonośc pesymistyczna wynosi więc O(V^2 * E * max_flow)
+
 from collections import deque
 from zad9testy import runtests
 
@@ -106,7 +113,7 @@ def list_to_graph(G):
     return D
 
 
-def highway(G, s):
+def maxflow(G, s):
     m = 0
     D = list_to_graph(G)
     last = len(D)
@@ -126,4 +133,4 @@ def highway(G, s):
     return m
 
 
-runtests(highway, all_tests=True)
+runtests(maxflow, all_tests=True)
