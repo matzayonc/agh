@@ -56,6 +56,9 @@ void init_ht(hash_table *p_table, int size, DataFp dump_data, DataFp free_data,
 {
 	p_table = malloc(sizeof(hash_table));
 	p_table->ht = malloc(size * sizeof(void *));
+	for (int i = 0; i < size; i++)
+		p_table->ht[i] = NULL;
+
 	p_table->size = size;
 	p_table->no_elements = 0;
 
@@ -69,16 +72,37 @@ void init_ht(hash_table *p_table, int size, DataFp dump_data, DataFp free_data,
 // print elements of the list with hash n
 void dump_list(const hash_table *p_table, int n)
 {
+	ht_element *el = p_table->ht[n];
+
+	while (el)
+	{
+		p_table->dump_data(el->data);
+		el = el->next;
+	}
 }
 
 // Free element pointed by data_union using free_data() function
 void free_element(DataFp free_data, ht_element *to_delete)
 {
+	free_data(to_delete->data);
+	free(to_delete);
 }
 
 // free all elements from the table (and the table itself)
 void free_table(hash_table *p_table)
 {
+	for (int i = 0; i < p_table->size; i++)
+	{
+		ht_element *el = p_table->ht[i];
+
+		while (el)
+		{
+			ht_element *next = el->next;
+			free_element(p_table->free_data, el);
+			el = next;
+		}
+	}
+	free(p_table->ht);
 }
 
 // calculate hash function for integer k
@@ -91,26 +115,110 @@ int hash_base(int k, int size)
 
 void rehash(hash_table *p_table)
 {
+	p_table->size *= 2;
+	ht_element *head = NULL;
+	ht_element *tail = NULL;
+
+	for (int i = 0; i < p_table->size; i++)
+	{
+		ht_element *el = p_table->ht[i];
+		if (!el)
+			continue;
+
+		if (!head)
+		{
+			head = el;
+			continue;
+		}
+		else
+			tail->next = el;
+
+		while (el->next)
+			el = el->next;
+
+		tail = el;
+	}
+
+	p_table->size *= 2;
+	p_table->ht = realloc(p_table->ht, p_table->size);
+	for (int i = 0; i < p_table->size; i++)
+		p_table->ht[i] = NULL;
+
+	while (head)
+	{
+		const int hash = p_table->hash_function(head->data, p_table->size);
+		ht_element *neck = p_table->ht[hash];
+		p_table->ht[hash] = head;
+		head->next = neck;
+	}
 }
 
 // find element; return pointer to previous
 ht_element *find_previous(hash_table *p_table, data_union data, int *first)
 {
+	ht_element *prev = NULL;
+	ht_element *el = p_table->ht[*first];
+
+	while (el && p_table->compare_data(el->data, data))
+	{
+		prev = el;
+		el = el->next;
+	}
+	if (!el)
+		exit(5);
+
+	return prev;
 }
 
 // return pointer to element with given value
 ht_element *get_element(hash_table *p_table, data_union *data)
 {
+	int hash = p_table->hash_function(*data, p_table->size);
+	// ht_element *prev = find_previous(p_table, *data, hash);
+
+	ht_element *prev = NULL;
+	ht_element *el = p_table->ht[hash];
+
+	while (el && p_table->compare_data(el->data, *data))
+	{
+		prev = el;
+		el = el->next;
+	}
+	if (!el)
+		exit(5);
+
+	return prev ? prev->next : p_table->ht[hash];
 }
 
 // insert element
 void insert_element(hash_table *p_table, data_union *data)
 {
+	const int hash = p_table->hash_function(*data, p_table->size);
+
+	ht_element *el = malloc(sizeof(ht_element));
+	el->next = p_table->ht[hash];
+	p_table->ht[hash] = el;
 }
 
 // remove element
 void remove_element(hash_table *p_table, data_union data)
 {
+	int hash = p_table->hash_function(data, p_table->size);
+	ht_element *prev = NULL;
+	ht_element *el = p_table->ht[hash];
+
+	while (el && p_table->compare_data(el->data, data))
+	{
+		prev = el;
+		el = el->next;
+	}
+
+	if (!prev)
+		p_table->ht[hash] = el->next;
+	else
+		prev->next = el->next;
+
+	free_element(p_table->free_data, el);
 }
 
 // type-specific definitions
@@ -124,15 +232,20 @@ int hash_int(data_union data, int size)
 
 void dump_int(data_union data)
 {
+	printf("%d\n", data.int_data);
 }
 
 int cmp_int(data_union a, data_union b)
 {
+	return b.int_data - a.int_data;
 }
 
 // read int value and insert to the union
 data_union create_data_int()
 {
+	data_union created;
+	scanf("%d", &(created.int_data));
+	return created;
 }
 
 // char element
@@ -144,15 +257,20 @@ int hash_char(data_union data, int size)
 
 void dump_char(data_union data)
 {
+	printf("%c\n", data.char_data);
 }
 
 int cmp_char(data_union a, data_union b)
 {
+	return a.char_data - b.char_data;
 }
 
 // read char value and insert to the union
 data_union create_data_char()
 {
+	data_union created;
+	scanf("%c", &(created.char_data));
+	return created;
 }
 
 // Word element
@@ -173,6 +291,7 @@ void free_word(data_union data)
 
 int cmp_word(data_union a, data_union b)
 {
+	return a.char_data - b.char_data;
 }
 
 int hash_word(data_union data, int size)
@@ -190,11 +309,18 @@ int hash_word(data_union data, int size)
 // increase the counter
 void modify_word(data_union *data)
 {
+	DataWord *dw = (DataWord *)data->ptr_data;
+	dw->counter++;
 }
 
 // allocate DataWord structure and insert to the union
 data_union create_data_word(char *value)
 {
+	DataWord *word = malloc(sizeof(DataWord));
+	word->word = value;
+	data_union created;
+	created.ptr_data = word;
+	return created;
 }
 
 // read text, parse it to words, and insert those words to the hashtable
@@ -240,9 +366,9 @@ int main(void)
 		scanf("%d %d", &n, &index);
 		init_ht(&table, 4, dump_int, NULL,
 				cmp_int, hash_int, NULL);
-		// table_test(&table, n, create_data_int);
-		// printf("%d\n", table.size);
-		// dump_list(&table, index);
+		table_test(&table, n, create_data_int);
+		printf("%d\n", table.size);
+		dump_list(&table, index);
 		// free_table(&table);
 		break;
 	case 2: // test char table
