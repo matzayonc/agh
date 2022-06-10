@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,8 +56,7 @@ void *safe_malloc(size_t size)
 void init_ht(hash_table *p_table, int size, DataFp dump_data, DataFp free_data,
 			 CompareDataFp compare_data, HashFp hash_function, DataPFp modify_data)
 {
-	p_table = malloc(sizeof(hash_table));
-	p_table->ht = malloc(size * sizeof(void *));
+	p_table->ht = (ht_element **)malloc(size * sizeof(void *));
 	for (int i = 0; i < size; i++)
 		p_table->ht[i] = NULL;
 
@@ -84,7 +85,8 @@ void dump_list(const hash_table *p_table, int n)
 // Free element pointed by data_union using free_data() function
 void free_element(DataFp free_data, ht_element *to_delete)
 {
-	free_data(to_delete->data);
+	if (free_data)
+		free_data(to_delete->data);
 	free(to_delete);
 }
 
@@ -140,7 +142,7 @@ void rehash(hash_table *p_table)
 	}
 
 	p_table->size *= 2;
-	p_table->ht = realloc(p_table->ht, p_table->size);
+	p_table->ht = (ht_element **)realloc(p_table->ht, p_table->size);
 	for (int i = 0; i < p_table->size; i++)
 		p_table->ht[i] = NULL;
 
@@ -195,8 +197,9 @@ void insert_element(hash_table *p_table, data_union *data)
 {
 	const int hash = p_table->hash_function(*data, p_table->size);
 
-	ht_element *el = malloc(sizeof(ht_element));
+	ht_element *el = (ht_element *)malloc(sizeof(ht_element));
 	el->next = p_table->ht[hash];
+	el->data = *data;
 	p_table->ht[hash] = el;
 }
 
@@ -316,7 +319,7 @@ void modify_word(data_union *data)
 // allocate DataWord structure and insert to the union
 data_union create_data_word(char *value)
 {
-	DataWord *word = malloc(sizeof(DataWord));
+	DataWord *word = (DataWord *)malloc(sizeof(DataWord));
 	word->word = value;
 	data_union created;
 	created.ptr_data = word;
